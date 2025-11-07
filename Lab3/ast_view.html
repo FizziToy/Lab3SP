@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>MiniC AST Viewer</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            background: #0d1117;
+            color: #eee;
+            font-family: "Segoe UI", sans-serif;
+            text-align: center;
+        }
+
+        svg {
+            background: #161b22;
+            margin-top: 15px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px #000;
+        }
+
+        h2 {
+            color: #58a6ff;
+            margin-top: 20px;
+        }
+
+        #status {
+            margin-top: 10px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <h2>MiniC → Візуалізація AST</h2>
+    <div id="status">Завантаження ast.json...</div>
+    <svg id="svg" width="1300" height="900"></svg>
+
+    <script>
+        const svg = d3.select("#svg");
+        const g = svg.append("g").attr("transform", "translate(50,50)");
+
+        // --- функція побудови дерева ---
+        function render(data) {
+            g.selectAll("*").remove();
+            const root = d3.hierarchy(data);
+            const tree = d3.tree().size([1100, 800]);
+            tree(root);
+
+            // лінії
+            g.selectAll(".link")
+                .data(root.links())
+                .enter().append("line")
+                .attr("stroke", "#555")
+                .attr("stroke-width", 1.5)
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            // вузли
+            const node = g.selectAll(".node")
+                .data(root.descendants())
+                .enter().append("g")
+                .attr("transform", d => `translate(${d.x},${d.y})`);
+
+            node.append("circle")
+                .attr("r", 20)
+                .attr("fill", "#238636");
+
+            node.append("text")
+                .attr("dy", 5)
+                .attr("x", 0)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#fff")
+                .attr("font-size", "13px")
+                .text(d => d.data.name || Object.keys(d.data)[0]);
+        }
+
+        // --- автоматичне завантаження ast.json ---
+        fetch("ast.json")
+            .then(res => {
+                if (!res.ok) throw new Error("Не вдалося знайти ast.json");
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById("status").textContent = "✅ AST завантажено";
+                render(data);
+            })
+            .catch(err => {
+                document.getElementById("status").textContent = "❌ " + err.message;
+                console.error(err);
+            });
+    </script>
+</body>
+</html>
