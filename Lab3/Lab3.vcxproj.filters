@@ -36,7 +36,9 @@
     <None Include="sample.c">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="ast.json" />
+    <None Include="ast.json">
+      <Filter>web</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ast.hpp">
