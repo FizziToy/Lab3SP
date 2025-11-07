@@ -30,6 +30,20 @@ int main(int argc, char** argv) {
         std::cerr << "Parse failed\n";
         return 3;
     }
+    bool emitCode = false;
+    for (int i = 1; i < argc; ++i) if (std::string(argv[i]) == "--emit") emitCode = true;
+
+    if (emitCode) {
+        Code code = g_prog->generate();
+        std::cout << "=== CODE ===\n";
+        for (auto& ln : code) {
+            std::cout << ln.op;
+            if (!ln.a.empty()) std::cout << " " << ln.a;
+            if (!ln.b.empty()) std::cout << " " << ln.b;
+            if (!ln.c.empty()) std::cout << " " << ln.c;
+            std::cout << "\n";
+        }
+    }
 
     // виконання
     try {

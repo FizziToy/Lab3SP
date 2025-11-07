@@ -76,7 +76,8 @@ struct Block : Stmt {
 };
 
 struct If : Stmt {
-    std::unique_ptr<Expr> c; std::unique_ptr<Stmt> t, f;
+    std::unique_ptr<Expr> c;
+    std::unique_ptr<Stmt> t, f;
     If(std::unique_ptr<Expr> c, std::unique_ptr<Stmt> t, std::unique_ptr<Stmt> f)
         : c(std::move(c)), t(std::move(t)), f(std::move(f)) {
     }
@@ -84,7 +85,8 @@ struct If : Stmt {
         if (c->eval(e)) t->exec(e, ret, hasRet); else if (f) f->exec(e, ret, hasRet);
     }
     void gen(Code& code) override {
-        c->gen(code); code.push_back({ "IF", "", "", "" });
+        c->gen(code);
+        code.push_back({ "IF", "", "", "" });
         t->gen(code);
         if (f) { code.push_back({ "ELSE", "", "", "" }); f->gen(code); }
         code.push_back({ "ENDIF", "", "", "" });
@@ -92,7 +94,8 @@ struct If : Stmt {
 };
 
 struct While : Stmt {
-    std::unique_ptr<Expr> c; std::unique_ptr<Stmt> b;
+    std::unique_ptr<Expr> c;
+    std::unique_ptr<Stmt> b;
     While(std::unique_ptr<Expr> c, std::unique_ptr<Stmt> b)
         : c(std::move(c)), b(std::move(b)) {
     }
@@ -101,7 +104,8 @@ struct While : Stmt {
     }
     void gen(Code& code) override {
         code.push_back({ "WHILE_BEGIN", "", "", "" });
-        c->gen(code); b->gen(code);
+        c->gen(code);
+        b->gen(code);
         code.push_back({ "WHILE_END", "", "", "" });
     }
 };
@@ -113,21 +117,20 @@ struct Ret : Stmt {
     void gen(Code& c) override { e->gen(c); c.push_back({ "RET", "", "", "" }); }
 };
 
-/* ===== Функції та програма ===== */
+/* ===== Функції ===== */
 struct Function : Node {
     std::string name;
     std::vector<std::string> params;
     std::unique_ptr<Block> body;
 
-    // ВАЖЛИВО: без free(n) — уникнення double-free
     Function(char* n, const std::vector<std::string>& ps, std::unique_ptr<Block> b)
         : name(n), params(ps), body(std::move(b)) {
     }
-
     int  call(const std::vector<int>& args);
     void gen(Code& code);
 };
 
+/* ===== Програма ===== */
 struct Program : Node {
     std::vector<std::unique_ptr<Function>> funcs;
     Function* find(const std::string& n);
@@ -135,5 +138,5 @@ struct Program : Node {
     Code generate();   // стековий псевдокод
 };
 
-/* ===== утиліти ===== */
+/* ===== Утиліти ===== */
 std::string toJSON(const Program&);
